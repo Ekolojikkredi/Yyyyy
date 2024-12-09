@@ -1,0 +1,135 @@
+// Atık verilerini tutmak için bir dizi oluşturuluyor
+const kayitlar = [];
+
+// Atık türlerine göre puanlar
+const puanlama = {
+  yag: 5,
+  tekstil: 3,
+  pil: 2,
+  elektronik: 6,
+  kagit: 2,
+  cam: 1,
+  metal: 4,
+  plastik: 2,
+};
+
+// Kayıt formunu işleme
+function kayitOl() {
+  const adi = document.getElementById('ogrenci-adi').value;
+  const okulNo = document.getElementById('ogrenci-numara').value;
+  const okulAdi = document.getElementById('ogrenci-okul').value;
+
+  if (adi && okulNo && okulAdi) {
+    // Kayıt edilen öğrencinin bilgileri kaydediliyor
+    const ogrenci = { adi, okulNo, okulAdi, atiklar: [] };
+    localStorage.setItem(ogrenci.okulNo, JSON.stringify(ogrenci));  // Öğrenciyi localStorage'a kaydet
+
+    alert('Öğrenci kaydı başarılı!');
+    document.getElementById('kayit-form').reset();  // Formu sıfırla
+  } else {
+    alert('Lütfen tüm alanları doldurun!');
+  }
+}
+
+// Atık verisi girişi
+function veriGirisi() {
+  const atikTuru = document.getElementById('atik-turu').value;
+  const miktar = document.getElementById('miktar').value;
+  const kayitYapan = document.getElementById('kayit-yapan').value;
+
+  const okulNo = prompt("Okul numaranızı girin:");
+
+  // Okul numarasına göre öğrenci verilerini alıyoruz
+  const ogrenci = JSON.parse(localStorage.getItem(okulNo));
+
+  if (ogrenci) {
+    // Atık türü ve miktarını kaydediyoruz
+    const puan = puanlama[atikTuru] * parseFloat(miktar);  // Puan hesapla
+    const tarih = new Date().toLocaleString();
+
+    const atikVerisi = {
+      tarih,
+      atikTuru,
+      miktar,
+      puan,
+      kayitYapan,
+    };
+
+    ogrenci.atiklar.push(atikVerisi);
+    localStorage.setItem(okulNo, JSON.stringify(ogrenci));  // Öğrenciyi güncelliyoruz
+
+    // Kaydedilen veriyi tabloya ekliyoruz
+    kayitlar.push(atikVerisi);
+    gosterVeri();
+
+    alert('Atık verisi başarıyla kaydedildi!');
+    document.getElementById('veri-girisi-form').reset();  // Formu sıfırla
+  } else {
+    alert('Öğrenci bulunamadı! Lütfen okul numarasını kontrol edin.');
+  }
+}
+
+// Atık verilerini tabloya yansıtma
+function gosterVeri() {
+  const kayitlarTablo = document.getElementById('kayitlar');
+  kayitlarTablo.innerHTML = '';  // Eski verileri temizle
+
+  let toplamAtik = 0;
+
+  kayitlar.forEach((kayit) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${kayit.tarih}</td>
+      <td>${kayit.ogrenciAdi}</td>
+      <td>${kayit.okulNo}</td>
+      <td>${kayit.atikTuru}</td>
+      <td>${kayit.miktar}</td>
+      <td>${kayit.puan}</td>
+      <td>${kayit.kayitYapan}</td>
+    `;
+    kayitlarTablo.appendChild(row);
+    toplamAtik += kayit.puan;  // Toplam atık puanını güncelle
+  });
+
+  // Toplam atık puanını görüntüle
+  document.getElementById('toplam-atik').textContent = toplamAtik;
+}
+
+// Öğrenci verilerini ve atıkları görüntüleme
+function veriGoruntule() {
+  const okulNo = prompt("Okul numaranızı girin:");
+
+  // Okul numarasına göre öğrenci verilerini alıyoruz
+  const ogrenci = JSON.parse(localStorage.getItem(okulNo));
+
+  if (ogrenci) {
+    // Öğrencinin atık verilerini görüntülüyoruz
+    const kayitlarTablo = document.getElementById('kayitlar');
+    kayitlarTablo.innerHTML = '';  // Eski verileri temizle
+
+    let toplamAtik = 0;
+
+    ogrenci.atiklar.forEach((kayit) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${kayit.tarih}</td>
+        <td>${kayit.atikTuru}</td>
+        <td>${kayit.miktar}</td>
+        <td>${kayit.puan}</td>
+        <td>${kayit.kayitYapan}</td>
+      `;
+      kayitlarTablo.appendChild(row);
+      toplamAtik += kayit.puan;  // Toplam atık puanını güncelle
+    });
+
+    // Öğrencinin toplam atık puanını görüntüle
+    alert(`Toplam Atık Puanınız: ${toplamAtik}`);
+  } else {
+    alert('Öğrenci bulunamadı! Lütfen okul numarasını kontrol edin.');
+  }
+}
+
+// Sayfa yüklendiğinde tüm verileri göster
+document.addEventListener('DOMContentLoaded', () => {
+  gosterVeri();
+});
